@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
-from pandas.tseries.holiday import AbstractHolidayCalendar, Holiday, EasterMonday, GoodFriday, NewYearsDay, Christmas
+from pandas.tseries.holiday import AbstractHolidayCalendar, Holiday, EasterMonday, GoodFriday
 from scipy.interpolate import CubicSpline
 from typing import Dict, Any
 
@@ -26,9 +26,15 @@ st.markdown("""
 
 # --- 2. PHYSICS & MATH LIBRARY ---
 
-class DynamicHolidayCalendar(AbstractHolidayCalendar):
-    rules = [NewYearsDay, GoodFriday, EasterMonday, Holiday('Labor Day', month=5, day=1), Holiday('Unity Day', month=10, day=3), Christmas]
-
+class GermanHolidayCalendar(AbstractHolidayCalendar):
+    rules = [
+        Holiday('New Years Day', month=1, day=1),  # Manuell definiert statt importiert
+        GoodFriday, 
+        EasterMonday,
+        Holiday('Labor Day', month=5, day=1),
+        Holiday('German Unity Day', month=10, day=3),
+        Holiday('Christmas', month=12, day=25)     # Manuell definiert statt importiert
+    ]
 class MarketPhysics:
     def __init__(self, start_date, n_days, latitude):
         self.n_hours = int(n_days * 24)
@@ -59,7 +65,7 @@ class MarketPhysics:
         solar_shape *= np.clip(np.cos(zenith), 0, 1)
         
         # Demand & Holidays
-        cal = DynamicHolidayCalendar()
+        cal = GermanHolidayCalendar()
         is_off = (time_index.dayofweek >= 5) | time_index.normalize().isin(cal.holidays(start=time_index.min(), end=time_index.max()))
         demand = (1.0 + 0.15*np.sin((hod-8)*np.pi/12)) * np.where(is_off, 0.85, 1.0) * (1.0 + 0.15*np.cos(2*np.pi*(doy+10)/365))
         
